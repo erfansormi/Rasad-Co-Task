@@ -1,9 +1,8 @@
-import { useSearchParams } from "react-router-dom";
-import Input from "../../../components/ui/input";
-import SelectBox from "../../../components/ui/select-box";
-import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
+import Input from "../../../components/ui/input";
 import Button from "../../../components/ui/button";
+import { useSearchParams } from "react-router-dom";
+import SelectBox from "../../../components/ui/select-box";
 
 const ProductsFilter = ({
   brands,

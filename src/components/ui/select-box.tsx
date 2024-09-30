@@ -1,6 +1,6 @@
-import React, { useState, useEffect, KeyboardEvent, MouseEvent } from "react";
-import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { cn } from "../../libs/utils";
+import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
+import React, { useState, KeyboardEvent, MouseEvent } from "react";
 
 interface Option {
   value: string;
@@ -24,22 +24,9 @@ const Select: React.FC<SelectProps> = ({
   values,
 }) => {
   const [focusedValue, setFocusedValue] = useState<number>(-1);
-  const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [typed, setTyped] = useState<string>("");
-
-  let timeout: ReturnType<typeof setTimeout>;
-
-  useEffect(() => {
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
-
-  const onFocus = () => setIsFocused(true);
 
   const onBlur = () => {
-    setIsFocused(false);
     setIsOpen(false);
     if (!multiple) {
       const value = values[0];
@@ -85,28 +72,6 @@ const Select: React.FC<SelectProps> = ({
       case "ArrowUp":
         e.preventDefault();
         setFocusedValue((prev) => Math.max(prev - 1, 0));
-        break;
-      default:
-        if (/^[a-z0-9]$/i.test(e.key)) {
-          const char = e.key;
-          clearTimeout(timeout);
-          timeout = setTimeout(() => setTyped(""), 1000);
-          setTyped((prevTyped) => {
-            const newTyped = prevTyped + char;
-            const index = options.findIndex((option) =>
-              new RegExp(`^${newTyped}`, "i").test(option.value)
-            );
-            if (index !== -1) {
-              if (multiple) {
-                setFocusedValue(index);
-              } else {
-                setValues([options[index].value]);
-                setFocusedValue(index);
-              }
-            }
-            return newTyped;
-          });
-        }
         break;
     }
   };
@@ -212,7 +177,6 @@ const Select: React.FC<SelectProps> = ({
     <div
       className="flex flex-col relative w-full focus:outline-none group"
       tabIndex={0}
-      onFocus={onFocus}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
     >

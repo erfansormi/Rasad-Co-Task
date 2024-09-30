@@ -1,11 +1,8 @@
 // App.tsx
-import React, { useState, useEffect } from "react";
-import { ProductType } from "../../types/product";
+import React from "react";
+import { ShieldAlert } from "lucide-react";
 import ProductsList from "./components/products-list";
-import { useSearchParams } from "react-router-dom";
-import Button from "../../components/ui/button";
 import ProductsFilter from "./components/products-filter";
-import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 import { useHomePageData } from "./hooks/use-home-page-data";
 import ProductsPagination from "./components/products-pagination";
 
