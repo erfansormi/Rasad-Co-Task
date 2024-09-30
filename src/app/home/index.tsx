@@ -5,17 +5,18 @@ import ProductsList from "./components/products-list";
 import { useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/button";
 import ProductsFilter from "./components/products-filter";
+import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 
 const HomePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [error, setError] = useState("");
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
 
   const searchValue = searchParams.get("search");
-
   const minPrice = searchParams.get("minPrice") || 0;
   const maxPrice = searchParams.get("maxPrice") || Infinity;
-
-  const queryCategories = searchParams.get("categories") || "";
-  const queryBrands = searchParams.get("brands") || "";
 
   const queryPage = searchParams.get("page");
   const page = queryPage && !isNaN(parseInt(queryPage)) ? parseInt(queryPage) : 1;
@@ -28,82 +29,137 @@ const HomePage: React.FC = () => {
     pages: 0,
   });
 
+  const [allProducts, setAllProducts] = useState<ProductType[]>([]);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
-
-  // const [searchTerm, setSearchTerm] = useState<string>("");
-  // const [filters, setFilters] = useState<{
-  //   category: string;
-  //   brand: string;
-  //   minPrice: number;
-  //   maxPrice: number;
-  // }>({
-  //   category: "",
-  //   brand: "",
-  //   minPrice: 0,
-  //   maxPrice: Infinity,
-  // });
-  // const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
 
   useEffect(() => {
     fetch(`http://localhost:3000/products`)
       .then((response) => response.json())
       .then((json: ProductType[]) => {
-        setCategories([...new Set(json.map((item) => item.category))]);
-        setBrands([...new Set(json.filter((item) => item.brand).map((item) => item.brand!))]);
-      });
+        setError("");
+        setCategories([...new Set(json.map((item) => item.category))].sort());
+        setBrands(
+          [...new Set(json.filter((item) => item.brand).map((item) => item.brand!))].sort()
+        );
+      })
+      .catch((err) => setError(err.message));
   }, []);
 
   useEffect(() => {
-    fetch(
-      `http://localhost:3000/products?_page=${page}&_limit=${perPage}&q=${searchValue}&price_gte=${minPrice}&price_lte=${maxPrice}&category=${queryCategories}&brnad=${queryBrands}`
-    )
+    const queries = new URLSearchParams();
+    if (searchValue) {
+      queries.set("q", searchValue);
+    }
+    queries.set("_page", String(page));
+    queries.set("_limit", String(perPage));
+    queries.set("price_gte", String(minPrice));
+    queries.set("price_lte", String(maxPrice));
+    if (selectedCategories.length) {
+      queries.set("category", selectedCategories.join(","));
+    }
+    // if (selectedBrands.length) {
+    //   queries.set("brand", selectedBrands.join(","));
+    // }
+
+    fetch(`http://localhost:3000/products?${queries.toString()}`)
       .then((response) => {
         const totalItems = +response.headers.get("X-Total-Count")!;
         setPaginateData({ items: totalItems, pages: Math.ceil(totalItems / perPage) });
         return response.json();
       })
       .then((json) => {
+        setError("");
         setProducts(json);
-      });
-  }, [page, searchValue, minPrice, maxPrice]);
+      })
+      .catch((err) => setError(err.message));
+  }, [page, searchValue, minPrice, maxPrice, selectedCategories]);
 
   return (
-    <main className="bg-neutral-50 min-h-screen">
-      <div className="container">
-        <h1 className="text-2xl font-bold mb-4">Product List</h1>
+    <main className="bg-neutral-50">
+      <div className="container h-full flex flex-col gap-4 min-h-screen">
+        <h1 className="text-2xl font-bold">Product List</h1>
 
-        <div className="flex gap-6 lg:flex-row flex-col">
-          <ProductsFilter categories={categories} brands={brands} />
+        <div className="flex gap-6 lg:flex-row flex-col grow">
+          <ProductsFilter
+            brands={brands}
+            categories={categories}
+            selectedBrands={selectedBrands}
+            selectedCategories={selectedCategories}
+            setSelectedBrands={setSelectedBrands}
+            setSelectedCategories={setSelectedCategories}
+          />
 
-          <ProductsList products={products} />
+          {error ? (
+            <div className="flex justify-center w-full text-red-500 font-semibold">
+              <div className="items-center h-fit flex gap-2">
+                <span>{error}</span>
+                <span>
+                  <ShieldAlert />
+                </span>
+              </div>
+            </div>
+          ) : (
+            <ProductsList products={products} />
+          )}
         </div>
 
-        <div className="flex justify-between items-center mt-4 gap-4">
-          {/* <p className="text-sm">Total Products: {filteredProducts.length}</p> */}
-          <div className="flex items-center gap-4">
+        <hr className="mt-4" />
+
+        <div className="flex text-sm items-center gap-4 justify-end font-medium">
+          <p>Total: {paginateData.items}</p>
+          <div className="flex items-center gap-2">
             <Button
+              size={"icon"}
+              variant={"secondary"}
+              disabled={page <= 1}
+              onClick={() => {
+                searchParams.set("page", "1");
+                setSearchParams(searchParams);
+              }}
+            >
+              <ChevronFirst size={18} />
+            </Button>
+            <Button
+              size={"icon"}
+              variant={"secondary"}
               disabled={page <= 1}
               onClick={() => {
                 searchParams.set("page", (page - 1).toString());
                 setSearchParams(searchParams);
               }}
             >
-              Previous
+              <ChevronLeft size={18} />
             </Button>
-            <span>
-              {" "}
-              Page {page} of {paginateData.pages}
-            </span>
+          </div>
+
+          <span>
+            {page} of {paginateData.pages}
+          </span>
+
+          <div className="flex items-center gap-2">
             <Button
+              size={"icon"}
+              variant={"secondary"}
               disabled={page >= paginateData.pages}
               onClick={() => {
                 searchParams.set("page", (page + 1).toString());
                 setSearchParams(searchParams);
               }}
             >
-              Next
+              <ChevronRight size={18} />
+            </Button>
+            <Button
+              size={"icon"}
+              variant={"secondary"}
+              disabled={page >= paginateData.pages}
+              onClick={() => {
+                searchParams.set("page", paginateData.pages.toString());
+                setSearchParams(searchParams);
+              }}
+            >
+              <ChevronLast size={18} />
             </Button>
           </div>
         </div>

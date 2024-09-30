@@ -2,52 +2,66 @@ import { useSearchParams } from "react-router-dom";
 import Input from "../../../components/ui/input";
 import SelectBox from "../../../components/ui/select-box";
 import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
+import Button from "../../../components/ui/button";
 
-const ProductsFilter = ({ brands, categories }: { brands: string[]; categories: string[] }) => {
+const ProductsFilter = ({
+  brands,
+  categories,
+  selectedBrands,
+  selectedCategories,
+  setSelectedBrands,
+  setSelectedCategories,
+}: {
+  brands: string[];
+  categories: string[];
+  selectedBrands: string[];
+  selectedCategories: string[];
+  setSelectedBrands: React.Dispatch<React.SetStateAction<string[]>>;
+  setSelectedCategories: React.Dispatch<React.SetStateAction<string[]>>;
+}) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
-  useEffect(() => {
-    searchParams.set("categories", selectedCategories.join(","));
-    setSearchParams(searchParams);
-  }, [selectedCategories]);
 
   return (
     <div className="p-4 rounded-lg bg-white shadow w-full lg:max-w-xs h-fit lg:sticky top-4 gap-3 flex flex-col">
-      <Input
-        type="search"
-        value={searchParams.get("search") || ""}
-        placeholder="Search Product..."
-        onChange={(e) => {
-          const value = e.target.value;
-          searchParams.set("search", value);
-          searchParams.set("page", "1");
-          setSearchParams(searchParams);
-        }}
-      />
+      <div className="relative">
+        <Input
+          className="w-full ps-7"
+          type="search"
+          variant={"muted"}
+          value={searchParams.get("search") || ""}
+          placeholder="Search Product..."
+          onChange={(e) => {
+            const value = e.target.value;
+            searchParams.set("search", value);
+            searchParams.set("page", "1");
+            setSearchParams(searchParams);
+          }}
+        />
+
+        <Search size={15} className="absolute left-2 top-[13px] text-neutral-500" />
+      </div>
 
       <hr />
 
-      <div className="flex items-center gap-2 flex-col sm:flex-row lg:flex-col">
+      <div className="flex gap-2.5 flex-col">
         <SelectBox
+          multiple
+          label="Category"
           values={selectedCategories}
           setValues={setSelectedCategories}
-          options={categories.map((category) => ({ value: category }))}
-          label="Category"
           placeholder="Filter categories ..."
+          options={categories.map((category) => ({ value: category }))}
         />
 
-        <select
-          onChange={(e) => console.log(e.target.value)}
-          name="category"
-          className="border p-2 rounded w-full"
-        >
-          <option value="">All Categories</option>
-        </select>
-        <select name="brand" className="border p-2 rounded w-full">
-          <option value="">All Brands</option>
-          {/* Add more brands as needed */}
-        </select>
+        <SelectBox
+          multiple
+          label="Brand"
+          values={selectedBrands}
+          setValues={setSelectedBrands}
+          placeholder="Filter brands ..."
+          options={brands.map((brand) => ({ value: brand }))}
+        />
       </div>
 
       <hr />
@@ -57,6 +71,7 @@ const ProductsFilter = ({ brands, categories }: { brands: string[]; categories: 
           min={0}
           type="number"
           name="minPrice"
+          variant={"muted"}
           placeholder="Min Price"
           className="w-full"
           value={searchParams.get("minPrice") || ""}
@@ -71,6 +86,7 @@ const ProductsFilter = ({ brands, categories }: { brands: string[]; categories: 
           min={0}
           type="number"
           name="maxPrice"
+          variant={"muted"}
           className="w-full"
           placeholder="Max Price"
           value={searchParams.get("maxPrice") || ""}
@@ -86,7 +102,25 @@ const ProductsFilter = ({ brands, categories }: { brands: string[]; categories: 
       <hr />
 
       <div>
-        <button className="bg-red-500 text-white px-4 py-2 rounded">Reset Filters</button>
+        <Button
+          size={"sm"}
+          variant={"error"}
+          className="flex items-center gap-1"
+          onClick={() => {
+            setSelectedBrands([]);
+            setSelectedCategories([]);
+            searchParams.delete("page");
+            searchParams.delete("search");
+            searchParams.delete("price_gte");
+            searchParams.delete("price_lte");
+            searchParams.delete("brands");
+            searchParams.delete("categories");
+            setSearchParams(searchParams);
+          }}
+        >
+          <X size={18} />
+          <span>Reset Filters</span>
+        </Button>
       </div>
     </div>
   );

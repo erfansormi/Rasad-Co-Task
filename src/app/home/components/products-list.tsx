@@ -5,7 +5,7 @@ const ProductsList = ({ products }: { products: ProductType[] }) => (
     {products.map((product) => (
       <section
         key={product.id}
-        className="p-4 rounded-lg shadow flex flex-col gap-3 bg-white group"
+        className="p-4 rounded-lg shadow flex flex-col h-fit gap-3 bg-white group"
       >
         <div className="flex items-center justify-center overflow-hidden">
           <img

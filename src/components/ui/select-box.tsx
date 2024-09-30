@@ -1,4 +1,6 @@
 import React, { useState, useEffect, KeyboardEvent, MouseEvent } from "react";
+import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
+import { cn } from "../../libs/utils";
 
 interface Option {
   value: string;
@@ -26,7 +28,7 @@ const Select: React.FC<SelectProps> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [typed, setTyped] = useState<string>("");
 
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
 
   useEffect(() => {
     return () => {
@@ -143,33 +145,43 @@ const Select: React.FC<SelectProps> = ({
 
   const renderValues = () => {
     if (values.length === 0) {
-      return <div className="placeholder">{placeholder}</div>;
+      return <div className="py-2 text-neutral-500">{placeholder}</div>;
     }
     if (multiple) {
-      return values.map((value) => (
-        <span key={value} onClick={stopPropagation} className="multiple value">
-          {value}
-          <span data-value={value} onClick={onDeleteOption} className="delete">
-            <X />
-          </span>
-        </span>
-      ));
+      return (
+        <div className="flex items-center gap-2 flex-wrap py-2 text-neutral-500">
+          {values.map((value) => (
+            <span
+              key={value}
+              onClick={stopPropagation}
+              className="text-blue-500 font-semibold capitalize bg-neutral-200 relative px-2 py-1 flex items-center gap-2 rounded-lg text-sm"
+            >
+              <span>{value}</span>
+              <span data-value={value} onClick={onDeleteOption} className="cursor-pointer">
+                <X size={16} />
+              </span>
+            </span>
+          ))}
+        </div>
+      );
     }
-    return <div className="value">{values[0]}</div>;
+    return <div className="capitalize">{values[0]}</div>;
   };
 
   const renderOptions = () => {
     if (!isOpen) return null;
     return (
-      <div className="options">{options.map((option, index) => renderOption(option, index))}</div>
+      <div className="absolute z-30 top-[110%] max-h-72 overflow-y-auto overflow-x-hidden inset-x-0 rounded-lg py-1 border bg-white">
+        {options.map((option, index) => renderOption(option, index))}
+      </div>
     );
   };
 
   const renderOption = (option: Option, index: number) => {
     const selected = values.includes(option.value);
-    const className = `option ${selected ? "selected" : ""} ${
-      index === focusedValue ? "focused" : ""
-    }`;
+    const className = `px-4 border-b cursor-pointer capitalize py-1 ${
+      selected ? "border bg-neutral-100 border-blue-500 -mt-px -mr-px" : ""
+    } ${index === focusedValue ? "bg-neutral-50" : ""}`;
 
     return (
       <div
@@ -179,7 +191,16 @@ const Select: React.FC<SelectProps> = ({
         onMouseOver={onHoverOption}
         onClick={onClickOption}
       >
-        {multiple && <span className="checkbox">{selected ? <Check /> : null}</span>}
+        {multiple && (
+          <span
+            className={cn(
+              "inline-flex me-2 border items-center justify-center size-4 text-white rounded-sm",
+              selected && "border border-blue-500 bg-blue-400"
+            )}
+          >
+            {selected ? <Check size={16} /> : null}
+          </span>
+        )}
         {option.value}
       </div>
     );
@@ -188,51 +209,24 @@ const Select: React.FC<SelectProps> = ({
   const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
-    <div className="select" tabIndex={0} onFocus={onFocus} onBlur={onBlur} onKeyDown={onKeyDown}>
-      <label className="label">{label}</label>
-      <div className="selection" onClick={onClick}>
-        {renderValues()}
-        <span className="arrow">{isOpen ? <ChevronUp /> : <ChevronDown />}</span>
+    <div
+      className="flex flex-col relative w-full focus:outline-none group"
+      tabIndex={0}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+    >
+      <label className="font-semibold mb-1 text-sm">{label}</label>
+      <div
+        className="group-focus:ring-2 group-focus:ring-blue-500 group-focus:ring-offset-1 transition-all duration-200 relative flex items-center border bg-neutral-100 rounded-md min-h-9 justify-between px-3"
+        onClick={onClick}
+      >
+        <span>{renderValues()}</span>
+        <span>{isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
       </div>
       {renderOptions()}
     </div>
   );
 };
-
-// Icons as functional components
-const ChevronDown = () => (
-  <svg viewBox="0 0 10 7">
-    <path
-      d="M2.08578644,6.5 C1.69526215,6.89052429 1.69526215,7.52368927 2.08578644,7.91421356 C2.47631073,8.30473785 3.10947571,8.30473785 3.5,7.91421356 L8.20710678,3.20710678 L3.5,-1.5 C3.10947571,-1.89052429 2.47631073,-1.89052429 2.08578644,-1.5 C1.69526215,-1.10947571 1.69526215,-0.476310729 2.08578644,-0.0857864376 L5.37867966,3.20710678 L2.08578644,6.5 Z"
-      transform="translate(5.000000, 3.207107) rotate(90.000000) translate(-5.000000, -3.207107)"
-    />
-  </svg>
-);
-
-const ChevronUp = () => (
-  <svg viewBox="0 0 10 8">
-    <path
-      d="M2.08578644,7.29289322 C1.69526215,7.68341751 1.69526215,8.31658249 2.08578644,8.70710678 C2.47631073,9.09763107 3.10947571,9.09763107 3.5,8.70710678 L8.20710678,4 L3.5,-0.707106781 C3.10947571,-1.09763107 2.47631073,-1.09763107 2.08578644,-0.707106781 C1.69526215,-0.316582489 1.69526215,0.316582489 2.08578644,0.707106781 L5.37867966,4 L2.08578644,7.29289322 Z"
-      transform="translate(5.000000, 4.000000) rotate(-90.000000) translate(-5.000000, -4.000000)"
-    />
-  </svg>
-);
-
-const X = () => (
-  <svg viewBox="0 0 16 16">
-    <path d="M2 .594l-1.406 1.406.688.719 5.281 5.281-5.281 5.281-.688.719 1.406 1.406.719-.688 5.281-5.281 5.281 5.281.719.688 1.406-1.406-.688-.719-5.281-5.281 5.281-5.281.688-.719-1.406-1.406-.719.688-5.281 5.281-5.281-5.281-.719-.688z" />
-  </svg>
-);
-
-const Check = () => (
-  <svg viewBox="0 0 16 16">
-    <path
-      d="M13 .156l-1.406 1.438-5.594 5.594-1.594-1.594-1.406-1.438-2.844 2.844 1.438 1.406 3 3 1.406 1.438 1.406-1.438 7-7 1.438-1.406-2.844-2.844z"
-      transform="translate(0 1)"
-    />
-  </svg>
-);
-
-// Render example
 
 export default Select;

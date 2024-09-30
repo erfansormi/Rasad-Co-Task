@@ -8,10 +8,13 @@ const buttonStyles = cva(
     variants: {
       variant: {
         primary: "bg-blue-500 hover:bg-blue-600 text-white",
+        secondary: "bg-white ring-1 ring-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white",
+        error: "bg-red-500 hover:bg-red-600 text-white",
       },
       size: {
         default: "h-10 px-4",
         sm: "h-9 px-3 text-sm",
+        icon: "size-7 flex items-center justify-center",
       },
     },
     defaultVariants: {
@@ -38,7 +41,7 @@ const Button = ({
     <button
       className={cn(
         buttonStyles({ variant, size }),
-        disabled && "opacity-50 hover:bg-[auto]",
+        disabled && "opacity-50 hover:bg-[auto] hover:text-[unset]",
         !disabled && "active:scale-90",
         className
       )}
