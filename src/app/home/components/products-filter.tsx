@@ -46,7 +46,6 @@ const ProductsFilter = ({
 
       <div className="flex gap-2.5 flex-col">
         <SelectBox
-          multiple
           label="Category"
           values={selectedCategories}
           setValues={setSelectedCategories}
@@ -55,7 +54,6 @@ const ProductsFilter = ({
         />
 
         <SelectBox
-          multiple
           label="Brand"
           values={selectedBrands}
           setValues={setSelectedBrands}
@@ -111,8 +109,8 @@ const ProductsFilter = ({
             setSelectedCategories([]);
             searchParams.delete("page");
             searchParams.delete("search");
-            searchParams.delete("price_gte");
-            searchParams.delete("price_lte");
+            searchParams.delete("minPrice");
+            searchParams.delete("maxPrice");
             searchParams.delete("brands");
             searchParams.delete("categories");
             setSearchParams(searchParams);
